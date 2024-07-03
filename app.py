@@ -4,8 +4,11 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import io
 import base64
+import os
 
 app = Flask(__name__)
+
+UPLOAD_FOLDER = 'uploads'
 
 def process_xml(file):
     ''' Parse XML'''
@@ -85,21 +88,24 @@ def generate_plot(data):
     buf.close() # Zamyka bufor.
     return image_base64
 
-@app.route('/', methods=['GET','POST'])
+def load_files_from_folder(folder):
+    ''' Load all files from uploads'''
+    all_date = pd.DataFrame()
+
+    for filename in os.listdir(folder):
+        if filename.endswith('.xml'):
+            file_path = os.path.join(folder, filename)
+            data = process_xml(file_path)
+            all_date = pd.concat([all_date, data], ignore_index=True)
+
+    return all_date
+
+@app.route('/', methods=['GET'])
 def index():
     ''' Render HTML'''
-    if request.method == 'POST':
-        files = request.files.getlist('files')
-        all_data = pd.DataFrame()
-
-        for file in files:
-            data = process_xml(file)
-            all_data = pd.concat([all_data, data], ignore_index=True)
-
-        plot_url = generate_plot(all_data)
-        return render_template('index.html', plot_url=plot_url, tabels=[all_data.to_html(classes='data')])
-    
-    return render_template('index.html')
+    all_data = load_files_from_folder(UPLOAD_FOLDER)
+    plot_url = generate_plot(all_data)
+    return render_template('index.html', plot_url=plot_url, tabels=[all_data.to_html(classes='data')])
 
 if __name__ == '__main__':
     app.run(debug=True)
