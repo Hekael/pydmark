@@ -40,9 +40,18 @@ def process_xml(file):
         header_from = identifiers.find('header_from').text
 
         auth_results = record.find('auth_results')
-        dkim_domain = auth_results.find('dkim').find('domain').text
-        dkim_selector = auth_results.find('dkim').find('selector').text
-        dkim_result = auth_results.find('dkim').find('result').text
+        try:
+            dkim_domain = auth_results.find('dkim').find('domain').text     
+        except:
+            dkim_domain = None
+        try:
+            dkim_selector = auth_results.find('dkim').find('selector').text
+        except:
+            dkim_selector = None
+        try:
+            dkim_result = auth_results.find('dkim').find('result').text
+        except:
+            dkim_result = None
 
         spf_domain = auth_results.find('spf').find('domain').text
         spf_scope = auth_results.find('spf').find('scope').text
