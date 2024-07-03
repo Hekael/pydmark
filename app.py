@@ -114,7 +114,9 @@ def index():
     ''' Render HTML'''
     all_data = load_files_from_folder(UPLOAD_FOLDER)
     plot_url = generate_plot(all_data)
-    return render_template('index.html', plot_url=plot_url, tabels=[all_data.to_html(classes='data')])
+    tables_html = all_data.to_html(classes='data')
+    #print(tables_html)
+    return render_template('index.html', plot_url=plot_url, tables=tables_html)
 
 if __name__ == '__main__':
     app.run(debug=True)

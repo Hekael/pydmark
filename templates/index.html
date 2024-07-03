@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>XML Report Processor</title>
+    <title>DMARK XML Report Processor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -10,10 +10,10 @@
     {% if plot_url %}
     <h2>Report Summary</h2>
     <img src="data:image/png;base64,{{ plot_url }}">
-    <h2>Data Table</h2>
-    {% for table in tables %}
-        {{ table|safe }}
-    {% endfor %}
     {% endif %}
+    <h2>Data Table</h2>
+    <div class="data-table">
+        {{ tables|safe }}
+    </div>
 </body>
 </html>
