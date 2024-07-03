@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>DMARK XML Report Processor</title>
+    <title>XML Report Processor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 </head>
 <body>
-    <h1>DMARK XML Report Processor</h1>
+    <h1>XML Report Processor</h1>
     {% if plot_url %}
     <h2>Report Summary</h2>
     <img src="data:image/png;base64,{{ plot_url }}">
@@ -24,11 +24,31 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.data').DataTable({
+            // Setup - add a text input to each footer cell
+            $('.data tfoot th').each(function() {
+                var title = $(this).text();
+                $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+            });
+
+            // DataTable
+            var table = $('.data').DataTable({
                 "paging": true,
                 "searching": true,
                 "ordering": true,
                 "info": true
+            });
+
+            // Apply the search
+            table.columns().every(function() {
+                var that = this;
+
+                $('input', this.footer()).on('keyup change', function() {
+                    if (that.search() !== this.value) {
+                        that
+                            .search(this.value)
+                            .draw();
+                    }
+                });
             });
         });
     </script>

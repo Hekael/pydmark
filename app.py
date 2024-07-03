@@ -114,7 +114,11 @@ def index():
     ''' Render HTML'''
     all_data = load_files_from_folder(UPLOAD_FOLDER)
     plot_url = generate_plot(all_data)
-    tables_html = all_data.to_html(classes='data')
+    tables_html = all_data.to_html(classes='data', border=0)
+    
+    # Dodanie stopki tabeli
+    tables_html = tables_html.replace('</thead>', '</thead><tfoot>' + tables_html.split('</thead>')[1].split('</tbody>')[0] + '</tfoot>')
+
     #print(tables_html)
     return render_template('index.html', plot_url=plot_url, tables=tables_html)
 

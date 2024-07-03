@@ -29,3 +29,9 @@ table.data th, table.data td {
     padding: 8px;
     text-align: left;
 }
+
+tfoot input {
+    width: 100%;
+    padding: 3px;
+    box-sizing: border-box;
+}
