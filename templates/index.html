@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <title>DMARK XML Report Processor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 </head>
 <body>
     <h1>DMARK XML Report Processor</h1>
@@ -15,5 +17,20 @@
     <div class="data-table">
         {{ tables|safe }}
     </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.data').DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true
+            });
+        });
+    </script>
 </body>
 </html>
