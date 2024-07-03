@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>XML Report Processor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>XML Report Processor</h1>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="files" multiple>
+        <input type="submit" value="Upload">
+    </form>
+    {% if plot_url %}
+    <h2>Report Summary</h2>
+    <img src="data:image/png;base64,{{ plot_url }}">
+    <h2>Data Table</h2>
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+    {% endif %}
+</body>
+</html>

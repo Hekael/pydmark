@@ -1,0 +1,31 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+table.data {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.data, table.data th, table.data td {
+    border: 1px solid #ddd;
+}
+
+table.data th, table.data td {
+    padding: 8px;
+    text-align: left;
+}
