@@ -6,13 +6,31 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <style>
+        .container {
+            display: flex;
+        }
+        .stats {
+            margin-left: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>XML Report Processor</h1>
-    {% if plot_url %}
-    <h2>Report Summary</h2>
-    <img src="data:image/png;base64,{{ plot_url }}">
-    {% endif %}
+    <div class="container">
+        <div class="plot">
+            {% if plot_url %}
+            <h2>Report Summary</h2>
+            <img src="data:image/png;base64,{{ plot_url }}">
+            {% endif %}
+        </div>
+        <div class="stats">
+            <h2>Statistics</h2>
+            <p>Total Messages: {{ stats.total_count }}</p>
+            <p>Delivered Messages: {{ stats.delivered_count }} ({{ stats.delivered_percentage }}%)</p>
+            <p>Rejected Messages: {{ stats.rejected_count }} ({{ stats.rejected_percentage }}%)</p>
+        </div>
+    </div>
     <h2>Data Table</h2>
     <div class="data-table">
         {{ tables|safe }}

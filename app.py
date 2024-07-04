@@ -116,8 +116,24 @@ def index():
     plot_url = generate_plot(all_data)
     tables_html = all_data.to_html(classes='data', border=0)
     
+    # Obliczanie statystyk
+    total_count = all_data['count'].astype(int).sum()
+    delivered_count = all_data[all_data['dispositon'] == 'none']['count'].astype(int).sum()
+    rejected_count = all_data[all_data['dispositon'] == 'reject']['count'].astype(int).sum()
+
+    delivered_percentage = round((delivered_count / total_count) * 100, 2) if total_count > 0 else 0
+    rejected_percentage = round((rejected_count / total_count) * 100, 2) if total_count > 0 else 0
+
+    stats = {
+        'total_count': total_count,
+        'delivered_count': delivered_count,
+        'rejected_count': rejected_count,
+        'delivered_percentage': delivered_percentage,
+        'rejected_percentage': rejected_percentage
+    }
+
     #print(tables_html)
-    return render_template('index.html', plot_url=plot_url, tables=tables_html)
+    return render_template('index.html', plot_url=plot_url, tables=tables_html, stats=stats)
 
 if __name__ == '__main__':
     app.run(debug=True)
