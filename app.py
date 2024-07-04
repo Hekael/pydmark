@@ -35,8 +35,14 @@ def process_xml(file):
         spf = row.find('policy_evaluated').find('spf').text
 
         identifiers = record.find('identifiers')
-        envelope_to = identifiers.find('envelope_to').text
-        envelope_from = identifiers.find('envelope_from').text
+        try:
+            envelope_to = identifiers.find('envelope_to').text
+        except:
+            envelope_to = None
+        try:
+            envelope_from = identifiers.find('envelope_from').text
+        except:
+            envelope_from = None
         header_from = identifiers.find('header_from').text
 
         auth_results = record.find('auth_results')
@@ -53,9 +59,16 @@ def process_xml(file):
         except:
             dkim_result = None
 
-        spf_domain = auth_results.find('spf').find('domain').text
-        spf_scope = auth_results.find('spf').find('scope').text
+        try:
+            spf_domain = auth_results.find('spf').find('domain').text
+        except:
+            spf_domain = None
+        try:
+            spf_scope = auth_results.find('spf').find('scope').text
+        except:
+            spf_scope = None
         spf_result = auth_results.find('spf').find('result').text
+
 
         reports.append({
             'org_name': org_name,
@@ -86,7 +99,7 @@ def generate_plot(data):
     _, ax = plt.subplots() # Tworzy oś (ax) do rysowania wykresu.
     data['date_begin'] = pd.to_datetime(data['date_begin'], unit='s') # Konwertuje kolumnę 'date' na typ datetime.
     data.set_index('date_begin').resample('D').size().plot(ax=ax) # ResaDpluje dane i rysuje wykres.
-    ax.set_title('Number of Reports per Month')
+    ax.set_title('Number of Reports per Day')
     ax.set_xlabel('Day') # oś x
     ax.set_ylabel('Number of Reports') # oś y
 
