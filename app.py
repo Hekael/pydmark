@@ -109,30 +109,38 @@ def load_files_from_folder(folder):
 
     return all_date
 
+def calculate_statistics(data):
+    ''' Statystyki dla domen '''
+    domains = data['header_from'].unique()
+    stats = {}
+    
+    for domain in domains:
+        domain_data = data[data['header_from'] == domain]
+        total_count = domain_data['count'].astype(int).sum()
+        delivered_count = domain_data[domain_data['dispositon'] == 'none']['count'].astype(int).sum()
+        rejected_count = domain_data[domain_data['dispositon'] == 'reject']['count'].astype(int).sum()
+
+        delivered_percentage = round((delivered_count / total_count) * 100, 2) if total_count > 0 else 0
+        rejected_percentage = round((rejected_count / total_count) * 100, 2) if total_count > 0 else 0
+
+        stats[domain] = {
+            'total_count': total_count,
+            'delivered_count': delivered_count,
+            'rejected_count': rejected_count,
+            'delivered_percentage': delivered_percentage,
+            'rejected_percentage': rejected_percentage
+        }
+    
+    return stats
+
 @app.route('/', methods=['GET'])
 def index():
     ''' Render HTML'''
     all_data = load_files_from_folder(UPLOAD_FOLDER)
     plot_url = generate_plot(all_data)
     tables_html = all_data.to_html(classes='data', border=0)
+    stats = calculate_statistics(all_data)
     
-    # Obliczanie statystyk
-    total_count = all_data['count'].astype(int).sum()
-    delivered_count = all_data[all_data['dispositon'] == 'none']['count'].astype(int).sum()
-    rejected_count = all_data[all_data['dispositon'] == 'reject']['count'].astype(int).sum()
-
-    delivered_percentage = round((delivered_count / total_count) * 100, 2) if total_count > 0 else 0
-    rejected_percentage = round((rejected_count / total_count) * 100, 2) if total_count > 0 else 0
-
-    stats = {
-        'total_count': total_count,
-        'delivered_count': delivered_count,
-        'rejected_count': rejected_count,
-        'delivered_percentage': delivered_percentage,
-        'rejected_percentage': rejected_percentage
-    }
-
-    #print(tables_html)
     return render_template('index.html', plot_url=plot_url, tables=tables_html, stats=stats)
 
 if __name__ == '__main__':

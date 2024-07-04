@@ -26,9 +26,12 @@
         </div>
         <div class="stats">
             <h2>Statistics</h2>
-            <p>Total Messages: {{ stats.total_count }}</p>
-            <p>Delivered Messages: {{ stats.delivered_count }} ({{ stats.delivered_percentage }}%)</p>
-            <p>Rejected Messages: {{ stats.rejected_count }} ({{ stats.rejected_percentage }}%)</p>
+            {% for domain, stat in stats.items() %}
+            <h3>{{ domain }}</h3>
+            <p>Total Messages: {{ stat.total_count }}</p>
+            <p>Delivered Messages: {{ stat.delivered_count }} ({{ stat.delivered_percentage }}%)</p>
+            <p>Rejected Messages: {{ stat.rejected_count }} ({{ stat.rejected_percentage }}%)</p>
+            {% endfor %}
         </div>
     </div>
     <h2>Data Table</h2>
