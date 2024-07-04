@@ -96,8 +96,9 @@ def process_xml(file):
 
 def generate_plot(data):
     ''' Generate plot in png'''
-    _, ax = plt.subplots() # Tworzy oś (ax) do rysowania wykresu.
+    data['date_begin'] = pd.to_numeric(data['date_begin']) # konwersja na liczbę.
     data['date_begin'] = pd.to_datetime(data['date_begin'], unit='s') # Konwertuje kolumnę 'date' na typ datetime.
+    _, ax = plt.subplots() # Tworzy oś (ax) do rysowania wykresu.
     data.set_index('date_begin').resample('D').size().plot(ax=ax) # ResaDpluje dane i rysuje wykres.
     ax.set_title('Number of Reports per Day')
     ax.set_xlabel('Day') # oś x
