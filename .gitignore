@@ -166,3 +166,4 @@ cython_debug/
 .vscode
 uploads/*
 !uploads/
+uploads2/*
