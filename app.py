@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, render_template
 import pandas as pd
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
@@ -35,38 +35,20 @@ def process_xml(file):
         spf = row.find('policy_evaluated').find('spf').text
 
         identifiers = record.find('identifiers')
-        try:
-            envelope_to = identifiers.find('envelope_to').text
-        except:
-            envelope_to = None
-        try:
-            envelope_from = identifiers.find('envelope_from').text
-        except:
-            envelope_from = None
+        envelope_to = identifiers.find('envelope_to').text if identifiers.find('envelope_to') is not None else None
+        envelope_from = identifiers.find('envelope_from').text if identifiers.find('envelope_from') is not None else None
         header_from = identifiers.find('header_from').text
 
         auth_results = record.find('auth_results')
-        try:
-            dkim_domain = auth_results.find('dkim').find('domain').text     
-        except:
-            dkim_domain = None
-        try:
-            dkim_selector = auth_results.find('dkim').find('selector').text
-        except:
-            dkim_selector = None
-        try:
-            dkim_result = auth_results.find('dkim').find('result').text
-        except:
-            dkim_result = None
 
-        try:
-            spf_domain = auth_results.find('spf').find('domain').text
-        except:
-            spf_domain = None
-        try:
-            spf_scope = auth_results.find('spf').find('scope').text
-        except:
-            spf_scope = None
+        dkim_data = auth_results.find('dkim') if auth_results.find('dkim') is not None else None
+        dkim_domain = dkim_data.find('domain').text if dkim_data is not None and dkim_data.find('domain') is not None else None
+        dkim_selector = dkim_data.find('selector').text if dkim_data is not None and dkim_data.find('selector') is not None else None
+        dkim_result = dkim_data.find('result').text if dkim_data is not None and dkim_data.find('result') is not None else None
+
+        spf_data = auth_results.find('spf') if auth_results.find('spf') is not None else None
+        spf_domain = spf_data.find('domain').text if spf_data is not None and spf_data.find('domain') is not None else None
+        spf_scope = spf_data.find('scope').text if spf_data is not None and spf_data.find('scope') is not None else None
         spf_result = auth_results.find('spf').find('result').text
 
 
