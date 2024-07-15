@@ -1,14 +1,52 @@
 from flask import Flask, render_template
+
 import pandas as pd
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import io
 import base64
 import os
+import datetime
+
+from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads'
+PROCESSED_FOLDER = 'processed'
+DATABASE_URI = 'sqlite:///dmarc_reports.db'
+
+Base = declarative_base()
+
+class DMARCReport(Base):
+    __tablename__ = 'dmarc_reports'
+    id = Column(Integer, primary_key=True)
+    org_name = Column(String)
+    email = Column(String)
+    report_id = Column(String)
+    date_begin = Column(DateTime)
+    date_end = Column(DateTime)
+    source_ip = Column(String)
+    count = Column(Integer)
+    disposition = Column(String)
+    dkim = Column(String)
+    spf = Column(String)
+    envelope_to = Column(String, nullable=True)
+    envelope_from = Column(String, nullable=True)
+    header_from = Column(String)
+    dkim_domain = Column(String, nullable=True)
+    dkim_selector = Column(String, nullable=True)
+    dkim_result = Column(String, nullable=True)
+    spf_domain = Column(String, nullable=True)
+    spf_scope = Column(String, nullable=True)
+    spf_result = Column(String)
+
+engine = create_engine(DATABASE_URI)
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 def process_xml(file):
     ''' Parse XML'''
@@ -22,15 +60,15 @@ def process_xml(file):
     org_name = metadate.find('org_name').text
     email = metadate.find('email').text
     report_id = metadate.find('report_id').text
-    date_begin = metadate.find('date_range').find('begin').text
-    date_end = metadate.find('date_range').find('end').text
+    date_begin = datetime.datetime.fromtimestamp(int(metadate.find('date_range').find('begin').text))
+    date_end = datetime.datetime.fromtimestamp(int(metadate.find('date_range').find('end').text))
 
     # pobieranie sekcji rekordów
     for record in root.findall('record'):
         row = record.find('row')
         source_ip = row.find('source_ip').text
-        count = row.find('count').text
-        dispositon = row.find('policy_evaluated').find('disposition').text
+        count = int(row.find('count').text)
+        disposition = row.find('policy_evaluated').find('disposition').text
         dkim = row.find('policy_evaluated').find('dkim').text
         spf = row.find('policy_evaluated').find('spf').text
 
@@ -52,36 +90,45 @@ def process_xml(file):
         spf_result = auth_results.find('spf').find('result').text
 
 
-        reports.append({
-            'org_name': org_name,
-            'email': email,
-            'report_id': report_id,
-            'date_begin': date_begin,
-            'date_end': date_end,
-            'source_ip': source_ip,
-            'count': count,
-            'dispositon': dispositon,
-            'dkim': dkim,
-            'spf': spf,
-            'envelope_to': envelope_to,
-            'envelope_from': envelope_from,
-            'header_from': header_from,
-            'dkim_domain': dkim_domain,
-            'dkim_selector': dkim_selector,
-            'dkim_result': dkim_result,
-            'spf_domain': spf_domain,
-            'spf_scope': spf_scope,
-            'spf_result': spf_result
-        })
+        report = DMARCReport(
+            org_name = org_name,
+            email = email,
+            report_id = report_id,
+            date_begin = date_begin,
+            date_end = date_end,
+            source_ip = source_ip,
+            count = count,
+            disposition = disposition,
+            dkim = dkim,
+            spf = spf,
+            envelope_to = envelope_to,
+            envelope_from = envelope_from,
+            header_from = header_from,
+            dkim_domain = dkim_domain,
+            dkim_selector = dkim_selector,
+            dkim_result = dkim_result,
+            spf_domain = spf_domain,
+            spf_scope = spf_scope,
+            spf_result = spf_result
+        )
 
-    return pd.DataFrame(reports)
+        reports.append(report)
+
+    session.add_all(reports)
+    session.commit()
+
+    #Przenoszenie przetworzonych plików do folderu
+    processed_subfolder = os.path.join(PROCESSED_FOLDER, os.path.basename(file))
+    os.makedirs(PROCESSED_FOLDER, exist_ok=True)
+    os.rename(file, os.path.join(PROCESSED_FOLDER, os.path.basename(file)))
 
 def generate_plot(data):
     ''' Generate plot in png'''
-    data['date_begin'] = pd.to_numeric(data['date_begin']) # konwersja na liczbę.
-    data['date_begin'] = pd.to_datetime(data['date_begin'], unit='s') # Konwertuje kolumnę 'date' na typ datetime.
+    data.set_index('date_begin', inplace=True)
+    data = data.resample('D').size()
+        
     _, ax = plt.subplots() # Tworzy oś (ax) do rysowania wykresu.
-    data.set_index('date_begin').resample('D').size().plot(ax=ax) # ResaDpluje dane i rysuje wykres.
+    data.plot(ax=ax) # Rysuje wykres.
     ax.set_title('Number of Reports per Day')
     ax.set_xlabel('Day') # oś x
     ax.set_ylabel('Number of Reports') # oś y
@@ -94,16 +141,17 @@ def generate_plot(data):
     return image_base64
 
 def load_files_from_folder(folder):
-    ''' Load all files from uploads'''
-    all_date = pd.DataFrame()
-
+    ''' Load all files from uploads and process them into database'''
     for filename in os.listdir(folder):
         if filename.endswith('.xml'):
             file_path = os.path.join(folder, filename)
-            data = process_xml(file_path)
-            all_date = pd.concat([all_date, data], ignore_index=True)
+            process_xml(file_path)
 
-    return all_date
+def load_data_from_db():
+    ''' Load all data from the database into a DataFrame '''
+    query = session.query(DMARCReport)
+    df = pd.read_sql(query.statement, query.session.bind)
+    return df
 
 def calculate_statistics(data):
     ''' Statystyki dla domen '''
@@ -113,8 +161,8 @@ def calculate_statistics(data):
     for domain in domains:
         domain_data = data[data['header_from'] == domain]
         total_count = domain_data['count'].astype(int).sum()
-        delivered_count = domain_data[domain_data['dispositon'] == 'none']['count'].astype(int).sum()
-        rejected_count = domain_data[domain_data['dispositon'] == 'reject']['count'].astype(int).sum()
+        delivered_count = domain_data[domain_data['disposition'] == 'none']['count'].astype(int).sum()
+        rejected_count = domain_data[domain_data['disposition'] == 'reject']['count'].astype(int).sum()
 
         delivered_percentage = round((delivered_count / total_count) * 100, 2) if total_count > 0 else 0
         rejected_percentage = round((rejected_count / total_count) * 100, 2) if total_count > 0 else 0
@@ -132,12 +180,13 @@ def calculate_statistics(data):
 @app.route('/', methods=['GET'])
 def index():
     ''' Render HTML'''
-    all_data = load_files_from_folder(UPLOAD_FOLDER)
+    load_files_from_folder(UPLOAD_FOLDER)
+    all_data = load_data_from_db()
     plot_url = generate_plot(all_data)
-    tables_html = all_data.to_html(classes='data', border=0)
+    #tables_html = all_data.to_html(classes='data', border=0)
     stats = calculate_statistics(all_data)
     
-    return render_template('index.html', plot_url=plot_url, tables=tables_html, stats=stats)
+    return render_template('index.html', plot_url=plot_url, stats=stats)
 
 if __name__ == '__main__':
     app.run(debug=True)
