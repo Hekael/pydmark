@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -122,13 +122,15 @@ def process_xml(file):
     os.makedirs(PROCESSED_FOLDER, exist_ok=True)
     os.rename(file, os.path.join(PROCESSED_FOLDER, os.path.basename(file)))
 
-def generate_plot(data):
+def generate_plot():
     ''' Generate plot in png'''
-    data.set_index('date_begin', inplace=True)
-    data = data.resample('D').size()
+    query = session.query(DMARCReport)
+    df = pd.read_sql(query.statement, query.session.bind)
+    df.set_index('date_begin', inplace=True)
+    df = df.resample('D').size()
         
     _, ax = plt.subplots() # Tworzy oś (ax) do rysowania wykresu.
-    data.plot(ax=ax) # Rysuje wykres.
+    df.plot(ax=ax) # Rysuje wykres.
     ax.set_title('Number of Reports per Day')
     ax.set_xlabel('Day') # oś x
     ax.set_ylabel('Number of Reports') # oś y
@@ -147,19 +149,27 @@ def load_files_from_folder(folder):
             file_path = os.path.join(folder, filename)
             process_xml(file_path)
 
-def load_data_from_db():
+def load_data_from_db(offset=0, limit=10, filters=None):
     ''' Load all data from the database into a DataFrame '''
     query = session.query(DMARCReport)
+
+    if filters:
+        for column, value in filters.items():
+            query = query.filter(getattr(DMARCReport, column).like(f"%{value}%"))
+
+    query = query.offset(offset).limit(limit)
     df = pd.read_sql(query.statement, query.session.bind)
     return df
 
-def calculate_statistics(data):
+def calculate_statistics():
     ''' Statystyki dla domen '''
-    domains = data['header_from'].unique()
+    query = session.query(DMARCReport)
+    df = pd.read_sql(query.statement, query.session.bind)
+    domains = df['header_from'].unique()
     stats = {}
     
     for domain in domains:
-        domain_data = data[data['header_from'] == domain]
+        domain_data = df[df['header_from'] == domain]
         total_count = domain_data['count'].astype(int).sum()
         delivered_count = domain_data[domain_data['disposition'] == 'none']['count'].astype(int).sum()
         rejected_count = domain_data[domain_data['disposition'] == 'reject']['count'].astype(int).sum()
@@ -181,12 +191,18 @@ def calculate_statistics(data):
 def index():
     ''' Render HTML'''
     load_files_from_folder(UPLOAD_FOLDER)
-    all_data = load_data_from_db()
-    plot_url = generate_plot(all_data)
-    #tables_html = all_data.to_html(classes='data', border=0)
-    stats = calculate_statistics(all_data)
+    plot_url = generate_plot()
+    stats = calculate_statistics()
     
     return render_template('index.html', plot_url=plot_url, stats=stats)
+
+@app.route('/api/data', methods=['GET'])
+def api_data():
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 10))
+    filters = {key: value for key, value in request.args.items() if key not in ['offset', 'limit']}
+    data = load_data_from_db(offset=offset, limit=limit, filters=filters)
+    return data.to_json(orient='records')
 
 if __name__ == '__main__':
     app.run(debug=True)

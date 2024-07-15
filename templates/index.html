@@ -1,76 +1,151 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>XML Report Processor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <meta charset="UTF-8">
+    <title>DMARC Reports</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        .container {
-            display: flex;
+        .pagination {
+            margin: 20px 0;
+            text-align: center;
         }
-        .stats {
-            margin-left: 20px;
+        .pagination button {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .filter-input {
+            width: 100%;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
-    <h1>XML Report Processor</h1>
-    <div class="container">
-        <div class="plot">
-            {% if plot_url %}
-            <h2>Report Summary</h2>
-            <img src="data:image/png;base64,{{ plot_url }}">
-            {% endif %}
-        </div>
-        <div class="stats">
-            <h2>Statistics</h2>
+    <h1>DMARC Reports</h1>
+    <div>
+        <img src="data:image/png;base64,{{ plot_url }}" alt="DMARC Reports Chart">
+    </div>
+    <div id="stats">
+        <h2>Statistics</h2>
+        <ul>
             {% for domain, stat in stats.items() %}
-            <h3>{{ domain }}</h3>
-            <p>Total Messages: {{ stat.total_count }}</p>
-            <p>Delivered Messages: {{ stat.delivered_count }} ({{ stat.delivered_percentage }}%)</p>
-            <p>Rejected Messages: {{ stat.rejected_count }} ({{ stat.rejected_percentage }}%)</p>
+            <li><strong>{{ domain }}</strong>: Delivered {{ stat['delivered_percentage'] }}%, Rejected {{ stat['rejected_percentage'] }}%</li>
             {% endfor %}
-        </div>
+        </ul>
     </div>
-    <h2>Data Table</h2>
-    <div class="data-table">
-        {{ tables|safe }}
+    <div id="table-container">
+        <table id="reports-table" class="data">
+            <thead>
+                <tr>
+                    <th><input class="filter-input" data-column="org_name" placeholder="Filter org_name"></th>
+                    <th><input class="filter-input" data-column="email" placeholder="Filter email"></th>
+                    <th><input class="filter-input" data-column="report_id" placeholder="Filter report_id"></th>
+                    <th><input class="filter-input" data-column="date_begin" placeholder="Filter date_begin"></th>
+                    <th><input class="filter-input" data-column="date_end" placeholder="Filter date_end"></th>
+                    <th><input class="filter-input" data-column="source_ip" placeholder="Filter source_ip"></th>
+                    <th><input class="filter-input" data-column="count" placeholder="Filter count"></th>
+                    <th><input class="filter-input" data-column="disposition" placeholder="Filter disposition"></th>
+                    <th><input class="filter-input" data-column="dkim" placeholder="Filter dkim"></th>
+                    <th><input class="filter-input" data-column="spf" placeholder="Filter spf"></th>
+                    <th><input class="filter-input" data-column="envelope_to" placeholder="Filter envelope_to"></th>
+                    <th><input class="filter-input" data-column="envelope_from" placeholder="Filter envelope_from"></th>
+                    <th><input class="filter-input" data-column="header_from" placeholder="Filter header_from"></th>
+                    <th><input class="filter-input" data-column="dkim_domain" placeholder="Filter dkim_domain"></th>
+                    <th><input class="filter-input" data-column="dkim_selector" placeholder="Filter dkim_selector"></th>
+                    <th><input class="filter-input" data-column="dkim_result" placeholder="Filter dkim_result"></th>
+                    <th><input class="filter-input" data-column="spf_domain" placeholder="Filter spf_domain"></th>
+                    <th><input class="filter-input" data-column="spf_scope" placeholder="Filter spf_scope"></th>
+                    <th><input class="filter-input" data-column="spf_result" placeholder="Filter spf_result"></th>
+                </tr>
+                <tr>
+                    <th>org_name</th>
+                    <th>email</th>
+                    <th>report_id</th>
+                    <th>date_begin</th>
+                    <th>date_end</th>
+                    <th>source_ip</th>
+                    <th>count</th>
+                    <th>disposition</th>
+                    <th>dkim</th>
+                    <th>spf</th>
+                    <th>envelope_to</th>
+                    <th>envelope_from</th>
+                    <th>header_from</th>
+                    <th>dkim_domain</th>
+                    <th>dkim_selector</th>
+                    <th>dkim_result</th>
+                    <th>spf_domain</th>
+                    <th>spf_scope</th>
+                    <th>spf_result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
     </div>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <div class="pagination">
+        <button id="prev-page">Previous</button>
+        <button id="next-page">Next</button>
+    </div>
     <script>
-        $(document).ready(function() {
-            // DataTable
-            var table = $('.data').DataTable({
-                "paging": true,
-                "searching": true,
-                "ordering": true,
-                "info": true
-            });
+        let offset = 0;
+        const limit = 10;
+        const filters = {};
 
-            // Setup - add a text input to each header cell
-            $('.data thead th').each(function() {
-                var title = $(this).text();
-                $(this).html(title + '<br><input type="text" placeholder="Search ' + title + '" />');
-            });
-
-            // Apply the search
-            table.columns().every(function() {
-                var that = this;
-
-                $('input', this.header()).on('keyup change', function() {
-                    if (that.search() !== this.value) {
-                        that
-                            .search(this.value)
-                            .draw();
-                    }
+        function loadData() {
+            const filterParams = Object.keys(filters).map(key => `${key}=${filters[key]}`).join('&');
+            const url = `/api/data?offset=${offset}&limit=${limit}&${filterParams}`;
+            $.getJSON(url, function(data) {
+                const tbody = $("#reports-table tbody");
+                tbody.empty();
+                data.forEach(row => {
+                    const tr = $("<tr></tr>");
+                    Object.values(row).forEach(cell => {
+                        tr.append($("<td></td>").text(cell));
+                    });
+                    tbody.append(tr);
                 });
             });
+        }
+
+        $(".filter-input").on("input", function() {
+            const column = $(this).data("column");
+            const value = $(this).val();
+            if (value) {
+                filters[column] = value;
+            } else {
+                delete filters[column];
+            }
+            offset = 0; // Reset offset when filtering
+            loadData();
+        });
+
+        $("#prev-page").click(function() {
+            if (offset > 0) {
+                offset -= limit;
+                loadData();
+            }
+        });
+
+        $("#next-page").click(function() {
+            offset += limit;
+            loadData();
+        });
+
+        $(document).ready(function() {
+            loadData();
         });
     </script>
 </body>
