@@ -129,7 +129,7 @@ def generate_plot():
     df.set_index('date_begin', inplace=True)
     df = df.resample('D').size()
         
-    _, ax = plt.subplots() # Tworzy oś (ax) do rysowania wykresu.
+    fig, ax = plt.subplots(figsize=(15, 6)) # Tworzy oś (ax) do rysowania wykresu.
     df.plot(ax=ax) # Rysuje wykres.
     ax.set_title('Number of Reports per Day')
     ax.set_xlabel('Day') # oś x
