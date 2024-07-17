@@ -117,9 +117,10 @@ def process_xml(file):
     session.commit()
 
     #Przenoszenie przetworzonych plików do folderu
-    processed_subfolder = os.path.join(PROCESSED_FOLDER, os.path.basename(file))
+    processed_folder_path = os.path.join(PROCESSED_FOLDER, os.path.basename(file))
     os.makedirs(PROCESSED_FOLDER, exist_ok=True)
-    os.rename(file, os.path.join(PROCESSED_FOLDER, os.path.basename(file)))
+    os.rename(file, processed_folder_path)
+    print(f"Moved file {file} to {processed_folder_path}")
 
 def generate_plot():
     ''' Generate plot in png'''
@@ -146,7 +147,10 @@ def load_files_from_folder(folder):
     for filename in os.listdir(folder):
         if filename.endswith('.xml'):
             file_path = os.path.join(folder, filename)
-            process_xml(file_path)
+            try:
+                process_xml(file_path)
+            except Exception as e:
+                print(f"Failed to process file {file_path}: {e}")
 
 def load_data_from_db(offset=0, limit=10, filters=None):
     ''' Load all data from the database into a DataFrame '''
