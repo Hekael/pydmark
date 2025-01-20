@@ -3,36 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>DMARC Reports</title>
+    <!-- Ładujemy jQuery z CDN: -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        .pagination {
-            margin: 20px 0;
-            text-align: center;
-        }
-        .pagination button {
-            padding: 10px 15px;
-            margin: 5px;
-            background-color: #f2f2f2;
-            border: 1px solid #ddd;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        .filter-input {
-            width: 100%;
-            box-sizing: border-box;
-        }
-    </style>
+    <!-- Ładujemy własny CSS (Flaskowe url_for('static', ...)): -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>DMARC Reports</h1>
+
+    <!-- Wykres -->
     <div>
         <img src="data:image/png;base64,{{ plot_url }}" alt="DMARC Reports Chart">
     </div>
@@ -173,7 +152,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Data rows will be inserted here by JavaScript -->
+                <!-- Dane wypełniane przez script.js -->
             </tbody>
         </table>
     </div>
@@ -182,63 +161,8 @@
         <button id="prev-page">Previous</button>
         <button id="next-page">Next</button>
     </div>
-    <script>
-        let offset = 0;
-        const limit = 10;
-        const filters = {};
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        }
-
-        function loadData() {
-            const filterParams = Object.keys(filters).map(key => `${key}=${filters[key]}`).join('&');
-            const url = `/api/data?offset=${offset}&limit=${limit}&${filterParams}`;
-            $.getJSON(url, function(data) {
-                const tbody = $("#reports-table tbody");
-                tbody.empty();
-                data.forEach(row => {
-                    const tr = $("<tr></tr>");
-                    Object.keys(row).forEach(key => {
-                        let cellValue = row[key];
-                        if (key === 'date_begin' || key === 'date_end') {
-                            cellValue = formatDate(cellValue);
-                        }
-                        tr.append($("<td></td>").text(cellValue));
-                    });
-                    tbody.append(tr);
-                });
-            });
-        }
-
-        $(".filter-input").on("input", function() {
-            const column = $(this).data("column");
-            const value = $(this).val();
-            if (value) {
-                filters[column] = value;
-            } else {
-                delete filters[column];
-            }
-            offset = 0; // Reset offset when filtering
-            loadData();
-        });
-
-        $("#prev-page").click(function() {
-            if (offset > 0) {
-                offset -= limit;
-                loadData();
-            }
-        });
-
-        $("#next-page").click(function() {
-            offset += limit;
-            loadData();
-        });
-
-        $(document).ready(function() {
-            loadData();
-        });
-    </script>
+    <!-- Własny plik JS na końcu <body> (po jQuery) -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

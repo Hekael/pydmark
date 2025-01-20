@@ -1,3 +1,4 @@
+/* Podstawy layoutu i typografii */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -7,18 +8,33 @@ h1 {
     color: #333;
 }
 
+/* Formularze (jeśli używasz gdzieś form) */
 form {
     margin-bottom: 20px;
 }
 
+/* Obrazki responsywne */
 img {
     max-width: 100%;
     height: auto;
 }
 
-table.data {
+/* 1. Styl tabeli z danymi (i ogólne) */
+table {
     width: 100%;
     border-collapse: collapse;
+    margin-bottom: 20px; /* Odstęp pod tabelą */
+}
+
+th, td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+/* 2. Tabela z klasą .data (główna) */
+table.data {
+    /* Możesz dodać dodatkowe style, jeśli chcesz ją wyróżnić. */
 }
 
 table.data, table.data th, table.data td {
@@ -30,8 +46,30 @@ table.data th, table.data td {
     text-align: left;
 }
 
+/* Inputy filtrujące w <thead> */
+.filter-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 3. Paginate buttons */
+.pagination {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.pagination button {
+    padding: 10px 15px;
+    margin: 5px;
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    cursor: pointer;
+}
+
+/* Jeśli używasz <tfoot> i chcesz tam stylować inputy:
 tfoot input {
     width: 100%;
     padding: 3px;
     box-sizing: border-box;
 }
+*/
