@@ -14,6 +14,35 @@
         <img src="data:image/png;base64,{{ plot_url }}" alt="DMARC Reports Chart">
     </div>
 
+    <!-- Statystyki za ostatni dzień -->
+    <div id="stats-day">
+        <h2>Statystyki za ostatni dzień</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Delivered %</th>
+                    <th>Rejected %</th>
+                    <th>Total Count</th>
+                    <th>Delivered Count</th>
+                    <th>Rejected Count</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for domain, stat in stats_day.items() %}
+                <tr>
+                    <td>{{ domain }}</td>
+                    <td>{{ stat['delivered_percentage'] }}%</td>
+                    <td>{{ stat['rejected_percentage'] }}%</td>
+                    <td>{{ stat['total_count'] }}</td>
+                    <td>{{ stat['delivered_count'] }}</td>
+                    <td>{{ stat['rejected_count'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
     <!-- Statystyki za ostatni tydzień -->
     <div id="stats-current">
         <h2>Statystyki za ostatni tydzień</h2>

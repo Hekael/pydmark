@@ -176,7 +176,11 @@ def calculate_statistics(time_period=None):
     df = pd.read_sql(query.statement, query.session.bind)
     
     # Filtrowanie po dacie (jeśli trzeba)
-    if time_period == 'week':
+    if time_period == 'day':
+        # Poprzedni dzień
+        since = datetime.datetime.now() - datetime.timedelta(days=2)
+        df = df[df['date_begin'] >= since]
+    elif time_period == 'week':
         since = datetime.datetime.now() - datetime.timedelta(days=7)
         df = df[df['date_begin'] >= since]
     elif time_period == 'month':
@@ -215,6 +219,8 @@ def index():
     load_files_from_folder(UPLOAD_FOLDER)
     plot_url = generate_plot()
     
+    # Statystyki za ostatni dzień
+    stats_day = calculate_statistics(time_period='day')
     # Statystyki za ostatni tydzień
     stats_week = calculate_statistics(time_period='week')
     # Statystyki za ostatni miesiąc
@@ -225,6 +231,7 @@ def index():
     return render_template(
         'index.html', 
         plot_url=plot_url, 
+        stats_day=stats_day,
         stats_week=stats_week, 
         stats_month=stats_month, 
         stats_all=stats_all
