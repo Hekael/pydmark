@@ -32,10 +32,11 @@ th, td {
     text-align: left;
 }
 
-/* 2. Tabela z klasą .data (główna) */
+/* 2. Tabela z klasą .data (główna)
 table.data {
-    /* Możesz dodać dodatkowe style, jeśli chcesz ją wyróżnić. */
+    
 }
+*/
 
 table.data, table.data th, table.data td {
     border: 1px solid #ddd;
