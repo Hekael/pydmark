@@ -5,13 +5,11 @@
     <title>DMARC Reports</title>
     <!-- Ładujemy jQuery z CDN: -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Ładujemy własny CSS (Flaskowe url_for('static', ...)): -->
+    <!-- Ładujemy własny CSS: -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>DMARC Reports</h1>
-
-    <!-- Wykres -->
     <div>
         <img src="data:image/png;base64,{{ plot_url }}" alt="DMARC Reports Chart">
     </div>
@@ -101,58 +99,60 @@
         </table>
     </div>
 
-    <!-- Główna tabela z raportami (paginacja i filtry) -->
+    <!-- Główna tabela z raportami -->
     <div id="table-container">
         <h2>Główna tabela z raportami</h2>
         <table id="reports-table" class="data">
             <thead>
                 <tr>
-                    <th><input class="filter-input" data-column="LP" placeholder="Filter LP"></th>
-                    <th><input class="filter-input" data-column="org_name" placeholder="Filter org_name"></th>
-                    <th><input class="filter-input" data-column="email" placeholder="Filter email"></th>
-                    <th><input class="filter-input" data-column="report_id" placeholder="Filter report_id"></th>
-                    <th><input class="filter-input" data-column="date_begin" placeholder="Filter date_begin"></th>
-                    <th><input class="filter-input" data-column="date_end" placeholder="Filter date_end"></th>
-                    <th><input class="filter-input" data-column="source_ip" placeholder="Filter source_ip"></th>
-                    <th><input class="filter-input" data-column="count" placeholder="Filter count"></th>
-                    <th><input class="filter-input" data-column="disposition" placeholder="Filter disposition"></th>
-                    <th><input class="filter-input" data-column="dkim" placeholder="Filter dkim"></th>
-                    <th><input class="filter-input" data-column="spf" placeholder="Filter spf"></th>
-                    <th><input class="filter-input" data-column="envelope_to" placeholder="Filter envelope_to"></th>
-                    <th><input class="filter-input" data-column="envelope_from" placeholder="Filter envelope_from"></th>
-                    <th><input class="filter-input" data-column="header_from" placeholder="Filter header_from"></th>
-                    <th><input class="filter-input" data-column="dkim_domain" placeholder="Filter dkim_domain"></th>
-                    <th><input class="filter-input" data-column="dkim_selector" placeholder="Filter dkim_selector"></th>
-                    <th><input class="filter-input" data-column="dkim_result" placeholder="Filter dkim_result"></th>
-                    <th><input class="filter-input" data-column="spf_domain" placeholder="Filter spf_domain"></th>
-                    <th><input class="filter-input" data-column="spf_scope" placeholder="Filter spf_scope"></th>
-                    <th><input class="filter-input" data-column="spf_result" placeholder="Filter spf_result"></th>
+                    <!-- ZMIANA: zastępujemy placeholdery na bardziej zrozumiałe -->
+                    <th><input class="filter-input" data-column="LP" placeholder="Filtruj Lp."></th>
+                    <th><input class="filter-input" data-column="org_name" placeholder="Filtruj nazwę organizacji"></th>
+                    <th><input class="filter-input" data-column="email" placeholder="Filtruj adres e-mail"></th>
+                    <th><input class="filter-input" data-column="report_id" placeholder="Filtruj ID raportu"></th>
+                    <th><input class="filter-input" data-column="date_begin" placeholder="Filtruj początek raportu"></th>
+                    <th><input class="filter-input" data-column="date_end" placeholder="Filtruj koniec raportu"></th>
+                    <th><input class="filter-input" data-column="source_ip" placeholder="Filtruj adres IP"></th>
+                    <th><input class="filter-input" data-column="count" placeholder="Filtruj liczbę wiadomości"></th>
+                    <th><input class="filter-input" data-column="disposition" placeholder="Filtruj dyspozycję (DMARC)"></th>
+                    <th><input class="filter-input" data-column="dkim" placeholder="Filtruj wynik DKIM"></th>
+                    <th><input class="filter-input" data-column="spf" placeholder="Filtruj wynik SPF"></th>
+                    <th><input class="filter-input" data-column="envelope_to" placeholder="Filtruj odbiorcę (SMTP)"></th>
+                    <th><input class="filter-input" data-column="envelope_from" placeholder="Filtruj nadawcę (SMTP)"></th>
+                    <th><input class="filter-input" data-column="header_from" placeholder="Filtruj nadawcę w nagłówku"></th>
+                    <th><input class="filter-input" data-column="dkim_domain" placeholder="Filtruj domenę DKIM"></th>
+                    <th><input class="filter-input" data-column="dkim_selector" placeholder="Filtruj selektor DKIM"></th>
+                    <th><input class="filter-input" data-column="dkim_result" placeholder="Filtruj rezultat DKIM"></th>
+                    <th><input class="filter-input" data-column="spf_domain" placeholder="Filtruj domenę SPF"></th>
+                    <th><input class="filter-input" data-column="spf_scope" placeholder="Filtruj zakres SPF"></th>
+                    <th><input class="filter-input" data-column="spf_result" placeholder="Filtruj rezultat SPF"></th>
                 </tr>
                 <tr>
-                    <th>LP</th>
-                    <th>org_name</th>
-                    <th>email</th>
-                    <th>report_id</th>
-                    <th>date_begin</th>
-                    <th>date_end</th>
-                    <th>source_ip</th>
-                    <th>count</th>
-                    <th>disposition</th>
-                    <th>dkim</th>
-                    <th>spf</th>
-                    <th>envelope_to</th>
-                    <th>envelope_from</th>
-                    <th>header_from</th>
-                    <th>dkim_domain</th>
-                    <th>dkim_selector</th>
-                    <th>dkim_result</th>
-                    <th>spf_domain</th>
-                    <th>spf_scope</th>
-                    <th>spf_result</th>
+                    <!-- ZMIANA: bardziej przyjazne nazwy kolumn -->
+                    <th>Lp.</th>
+                    <th>Nazwa organizacji</th>
+                    <th>Adres e-mail</th>
+                    <th>ID raportu</th>
+                    <th>Początek raportu</th>
+                    <th>Koniec raportu</th>
+                    <th>Adres IP</th>
+                    <th>Liczba wiadomości</th>
+                    <th>Dyspozycja (DMARC)</th>
+                    <th>Wynik DKIM</th>
+                    <th>Wynik SPF</th>
+                    <th>Adres odbiorcy (SMTP)</th>
+                    <th>Adres nadawcy (SMTP)</th>
+                    <th>Nadawca w nagłówku</th>
+                    <th>Domena DKIM</th>
+                    <th>Selektor DKIM</th>
+                    <th>Rezultat DKIM</th>
+                    <th>Domena SPF</th>
+                    <th>Zakres SPF</th>
+                    <th>Rezultat SPF</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Dane wypełniane przez script.js -->
+                <!-- Data rows will be inserted here by JavaScript -->
             </tbody>
         </table>
     </div>
