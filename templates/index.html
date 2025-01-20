@@ -36,15 +36,95 @@
     <div>
         <img src="data:image/png;base64,{{ plot_url }}" alt="DMARC Reports Chart">
     </div>
-    <div id="stats">
-        <h2>Statistics</h2>
-        <ul>
-            {% for domain, stat in stats.items() %}
-            <li><strong>{{ domain }}</strong>: Delivered: {{ stat['delivered_percentage'] }}%, Rejected: {{ stat['rejected_percentage'] }}%, Total Count: {{ stat['total_count']}}, Delivered Count: {{ stat['delivered_count']}}, Rejected Count: {{ stat['rejected_count']}}</li>
+
+    <!-- Statystyki za ostatni tydzień -->
+    <div id="stats-current">
+        <h2>Statystyki za ostatni tydzień</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Delivered %</th>
+                    <th>Rejected %</th>
+                    <th>Total Count</th>
+                    <th>Delivered Count</th>
+                    <th>Rejected Count</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for domain, stat in stats_week.items() %}
+                <tr>
+                    <td>{{ domain }}</td>
+                    <td>{{ stat['delivered_percentage'] }}%</td>
+                    <td>{{ stat['rejected_percentage'] }}%</td>
+                    <td>{{ stat['total_count'] }}</td>
+                    <td>{{ stat['delivered_count'] }}</td>
+                    <td>{{ stat['rejected_count'] }}</td>
+                </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
+
+        <!-- Statystyki za ostatni miesiąc -->
+        <h2>Statystyki za ostatni miesiąc</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Delivered %</th>
+                    <th>Rejected %</th>
+                    <th>Total Count</th>
+                    <th>Delivered Count</th>
+                    <th>Rejected Count</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for domain, stat in stats_month.items() %}
+                <tr>
+                    <td>{{ domain }}</td>
+                    <td>{{ stat['delivered_percentage'] }}%</td>
+                    <td>{{ stat['rejected_percentage'] }}%</td>
+                    <td>{{ stat['total_count'] }}</td>
+                    <td>{{ stat['delivered_count'] }}</td>
+                    <td>{{ stat['rejected_count'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
+
+    <!-- Statystyki całościowe (All Time) -->
+    <div id="stats-all">
+        <h2>Statystyki całościowe (All Time)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Delivered %</th>
+                    <th>Rejected %</th>
+                    <th>Total Count</th>
+                    <th>Delivered Count</th>
+                    <th>Rejected Count</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for domain, stat in stats_all.items() %}
+                <tr>
+                    <td>{{ domain }}</td>
+                    <td>{{ stat['delivered_percentage'] }}%</td>
+                    <td>{{ stat['rejected_percentage'] }}%</td>
+                    <td>{{ stat['total_count'] }}</td>
+                    <td>{{ stat['delivered_count'] }}</td>
+                    <td>{{ stat['rejected_count'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Główna tabela z raportami (paginacja i filtry) -->
     <div id="table-container">
+        <h2>Główna tabela z raportami</h2>
         <table id="reports-table" class="data">
             <thead>
                 <tr>
@@ -97,6 +177,7 @@
             </tbody>
         </table>
     </div>
+
     <div class="pagination">
         <button id="prev-page">Previous</button>
         <button id="next-page">Next</button>

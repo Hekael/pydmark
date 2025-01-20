@@ -164,11 +164,27 @@ def load_data_from_db(offset=0, limit=10, filters=None):
     df = pd.read_sql(query.statement, query.session.bind)
     return df
 
-def calculate_statistics():
-    ''' Statystyki dla domen '''
+def calculate_statistics(time_period=None):
+    """
+    Statystyki dla domen, z możliwością ograniczenia do konkretnego przedziału czasowego.
+    time_period może być np. 'week', 'month' lub None (pełne dane).
+    """
     query = session.query(DMARCReport)
     df = pd.read_sql(query.statement, query.session.bind)
-    domains = df['header_from'].unique()
+    
+    # Filtrowanie po dacie (jeśli trzeba)
+    if time_period == 'week':
+        since = datetime.datetime.now() - datetime.timedelta(days=7)
+        df = df[df['date_begin'] >= since]
+    elif time_period == 'month':
+        since = datetime.datetime.now() - datetime.timedelta(days=30)
+        df = df[df['date_begin'] >= since]
+
+    # Usuń wiersze, gdzie header_from jest None:
+    df = df.dropna(subset=['header_from'])
+    # Pobranie unikalnych domen i posortowanie alfabetycznie
+    domains = sorted(df['header_from'].unique())
+
     stats = {}
     
     for domain in domains:
@@ -195,9 +211,21 @@ def index():
     ''' Render HTML'''
     load_files_from_folder(UPLOAD_FOLDER)
     plot_url = generate_plot()
-    stats = calculate_statistics()
     
-    return render_template('index.html', plot_url=plot_url, stats=stats)
+    # Statystyki za ostatni tydzień
+    stats_week = calculate_statistics(time_period='week')
+    # Statystyki za ostatni miesiąc
+    stats_month = calculate_statistics(time_period='month')
+    # Pełne statystyki (to, co wcześniej)
+    stats_all = calculate_statistics(time_period=None)
+    
+    return render_template(
+        'index.html', 
+        plot_url=plot_url, 
+        stats_week=stats_week, 
+        stats_month=stats_month, 
+        stats_all=stats_all
+    )
 
 @app.route('/api/data', methods=['GET'])
 def api_data():
