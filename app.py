@@ -160,6 +160,9 @@ def load_data_from_db(offset=0, limit=10, filters=None):
         for column, value in filters.items():
             query = query.filter(getattr(DMARCReport, column).like(f"%{value}%"))
 
+    # Dodaj sortowanie według date_begin malejąco (najnowsze na górze):
+    query = query.order_by(DMARCReport.date_begin.desc())
+
     query = query.offset(offset).limit(limit)
     df = pd.read_sql(query.statement, query.session.bind)
     return df
